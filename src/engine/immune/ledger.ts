@@ -11,6 +11,7 @@ export interface ImmunologyEntry {
 }
 
 let cache: ImmunologyEntry[] | null = null
+let cachePath: string | null = null
 let parseError: string | null = null
 
 export function defaultLedgerPath(): string {
@@ -18,18 +19,22 @@ export function defaultLedgerPath(): string {
 }
 
 export function loadLedger(ledgerPath: string = defaultLedgerPath()): ImmunologyEntry[] {
-  if (cache) {
+  const key = resolve(ledgerPath)
+  if (cache && cachePath === key) {
     return cache
   }
   try {
-    const parsed: unknown = JSON.parse(readFileSync(ledgerPath, 'utf8'))
+    const parsed: unknown = JSON.parse(readFileSync(key, 'utf8'))
     if (!Array.isArray(parsed)) {
       throw new Error('ledger root is not an array')
     }
     cache = parsed as ImmunologyEntry[]
+    cachePath = key
+    parseError = null
   } catch (err) {
-    parseError = `${ledgerPath}: ${(err as Error).message}`
+    parseError = `${key}: ${(err as Error).message}`
     cache = []
+    cachePath = key
   }
   return cache
 }
@@ -40,6 +45,7 @@ export function ledgerError(): string | null {
 
 export function resetLedgerCache(): void {
   cache = null
+  cachePath = null
   parseError = null
 }
 

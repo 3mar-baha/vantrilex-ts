@@ -47,7 +47,9 @@ function findManifest(dir: string): { file: string; language: string; stack: str
     }
   }
   try {
-    const hits = readdirSync(dir).filter((f) => f.endsWith('.sln'))
+    const hits = readdirSync(dir)
+      .filter((f) => f.endsWith('.sln'))
+      .sort()
     if (hits.length > 0) {
       return { file: hits[0], language: '.NET', stack: 'MSBuild' }
     }
@@ -57,14 +59,15 @@ function findManifest(dir: string): { file: string; language: string; stack: str
   return null
 }
 
-function caseAction(c: ProjectCase): string {
-  switch (c) {
-    case ProjectCase.Fresh:
+export function caseAction(c: ProjectCase): string {
+  switch (c) {    case ProjectCase.Fresh:
       return 'Run vantrilex-project-founder: interview, draft 28-file spec, select stack.'
     case ProjectCase.Established:
       return 'Run vantrilex-project-onboarder: ingest architecture, expand, update workflows.'
     case ProjectCase.Brownfield:
       return 'Run vantrilex-project-reverse-engineer: read code as truth, rebuild docs.'
+    default:
+      return 'Re-run detection after choosing the workspace folder.'
   }
 }
 
@@ -76,6 +79,8 @@ export function caseName(c: ProjectCase): string {
       return 'Case 2 — Established workspace'
     case ProjectCase.Brownfield:
       return 'Case 3 — Brownfield / ambiguous repository'
+    default:
+      return 'Unknown case'
   }
 }
 
@@ -98,3 +103,4 @@ export function detectProjectCase(workspace: string): CaseDetails {
   const stack = manifest ? manifest.stack : 'Unknown'
   return { projectCase: ProjectCase.Brownfield, language, stack, action: caseAction(ProjectCase.Brownfield) }
 }
+
