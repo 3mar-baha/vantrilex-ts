@@ -22,6 +22,11 @@ function mockBridge(overrides: Partial<VantrilexApi> = {}): VantrilexApi {
     }),
     mobileQrGenerate: async () => ({ svg: '<svg></svg>', dataUri: 'data:image/png;base64,QR', expiresAt: 0 }),
     mobileApprovalRespond: async () => ({ ok: true }),
+    mobileScan: async () => ({ state: 'Paired' }),
+    mobileConnect: async () => ({ state: 'Connected' }),
+    mobileApprovalRequest: async () => ({ id: 'apr-1' }),
+    mobileApprovalForward: async () => ({ ok: true }),
+    onFoundryProgress: () => () => undefined,
     probes: async () => [
       { key: 'opencode', found: true, version: '1.0.0' },
       { key: 'claude', found: false, version: '' },

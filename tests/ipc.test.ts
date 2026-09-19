@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createApi, IPC_CHANNELS, type IpcChannel } from '../electron/channels'
 
 describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
-  it('exposes exactly the thirteen documented channels', () => {
+  it('exposes exactly the seventeen documented channels', () => {
     expect([...IPC_CHANNELS].sort()).toEqual(
       [
         'foundry:detect',
@@ -17,6 +17,10 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
         'mobile:status',
         'mobile:qr:generate',
         'mobile:approval:respond',
+        'mobile:scan',
+        'mobile:connect',
+        'mobile:approval:request',
+        'mobile:approval:forward',
         'doctor:probes'
       ].sort()
     )
@@ -35,6 +39,10 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
     await api.mobileStatus()
     await api.mobileQrGenerate()
     await api.mobileApprovalRespond('a1', true)
+    await api.mobileScan()
+    await api.mobileConnect()
+    await api.mobileApprovalRequest('s1', 'bash', 'npm test')
+    await api.mobileApprovalForward('a1', 'tok')
     await api.probes()
     await api.sessionsList()
     await api.sessionsDelete('s1')

@@ -4,8 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { VantrilexApi } from '../electron/channels'
 import { MobilePanel } from '../src/ui/stages/MobilePanel'
 
-function apiWith(status: { state: string; relayUrl: string; sessionId: string | null; pairedDevices: number; pendingApprovals: number }): VantrilexApi {
-  return {
+function apiWith(status: { state: string; relayUrl: string; sessionId: string | null; pairedDevices: number; pendingApprovals: number }): VantrilexApi & {
+  mobileQrGenerate: ReturnType<typeof vi.fn>
+  mobileScan: ReturnType<typeof vi.fn>
+  mobileConnect: ReturnType<typeof vi.fn>
+} {
+  const api = {
     detect: vi.fn(),
     provision: vi.fn(),
     launch: vi.fn(),
@@ -19,11 +23,21 @@ function apiWith(status: { state: string; relayUrl: string; sessionId: string | 
       dataUri: 'data:image/png;base64,QR',
       expiresAt: Date.now() + 60000
     })),
+    mobileScan: vi.fn(async () => ({ state: 'Paired' })),
+    mobileConnect: vi.fn(async () => ({ state: 'Connected' })),
     mobileApprovalRespond: vi.fn(async () => ({ ok: true })),
+    mobileApprovalRequest: vi.fn(async () => ({ id: 'apr-1' })),
+    mobileApprovalForward: vi.fn(async () => ({ ok: true })),
+    onFoundryProgress: vi.fn(() => () => undefined),
     probes: vi.fn(),
     sessionsList: vi.fn(),
     sessionsDelete: vi.fn()
-  } as unknown as VantrilexApi
+  } as unknown as VantrilexApi & {
+    mobileQrGenerate: ReturnType<typeof vi.fn>
+    mobileScan: ReturnType<typeof vi.fn>
+    mobileConnect: ReturnType<typeof vi.fn>
+  }
+  return api
 }
 
 describe('MobilePanel pairing and status', () => {
@@ -62,6 +76,29 @@ describe('MobilePanel pairing and status', () => {
     const img = screen.getByTestId('mobile-qr') as HTMLImageElement
     expect(img.src).toContain('data:image/png;base64,QR')
     expect(screen.getByTestId('mobile-message').textContent).toContain('expires')
+  })
+
+  it('advances scan then connect through IPC', async () => {
+    const api = apiWith({
+      state: 'AwaitingScan',
+      relayUrl: 'http://127.0.0.1:8787',
+      sessionId: 'sess-1',
+      pairedDevices: 0,
+      pendingApprovals: 0
+    })
+    render(<MobilePanel api={api} />)
+    await waitFor(() => {
+      expect(screen.getByText('AwaitingScan')).toBeTruthy()
+    })
+    fireEvent.click(screen.getByTestId('mobile-scan'))
+    await waitFor(() => {
+      expect(api.mobileScan).toHaveBeenCalledTimes(1)
+    })
+    fireEvent.click(screen.getByTestId('mobile-connect'))
+    await waitFor(() => {
+      expect(api.mobileConnect).toHaveBeenCalledTimes(1)
+    })
+    expect(screen.getByTestId('mobile-message').textContent).toContain('Pairing state')
   })
 
   it('surfaces relay errors without secrets', async () => {
