@@ -13,8 +13,15 @@ function mockBridge(overrides: Partial<VantrilexApi> = {}): VantrilexApi {
     sttTranscribe: async () => ({ text: 'hi' }),
     keyringStatus: async () => ({ fishAudio: { present: true, count: 1 }, groq: { present: false, count: 0 } }),
     keyringSet: async () => ({ fishAudio: { present: true, count: 1 }, groq: { present: false, count: 0 } }),
-    pair: async () => ({ qrPayload: 'qr' }),
-    approve: async () => ({ ok: true }),
+    mobileStatus: async () => ({
+      state: 'Disconnected',
+      relayUrl: 'http://127.0.0.1:8787',
+      sessionId: null,
+      pairedDevices: 0,
+      pendingApprovals: 0
+    }),
+    mobileQrGenerate: async () => ({ svg: '<svg></svg>', dataUri: 'data:image/png;base64,QR', expiresAt: 0 }),
+    mobileApprovalRespond: async () => ({ ok: true }),
     probes: async () => [
       { key: 'opencode', found: true, version: '1.0.0' },
       { key: 'claude', found: false, version: '' },
