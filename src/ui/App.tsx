@@ -7,6 +7,7 @@ import { HandoverStage } from './stages/HandoverStage'
 import { ModeStage } from './stages/ModeStage'
 import { ProvisioningStage } from './stages/ProvisioningStage'
 import { RunnerStage } from './stages/RunnerStage'
+import { VoicePanel } from './stages/VoicePanel'
 import { WorkspaceStage } from './stages/WorkspaceStage'
 import type { DetectionView, ProvisionProgress, ProvisionStep, RunnerOption } from './stages/types'
 
@@ -264,6 +265,7 @@ export function App() {
             </button>
           </div>
         )}
+        <VoicePanel api={bridge()} />
       </main>
       <Footer />
     </div>
