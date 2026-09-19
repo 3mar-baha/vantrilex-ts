@@ -2,6 +2,7 @@
   "name": "vantrilex",
   "version": "1.0.0",
   "description": "Vantrilex Next-Gen Agentic Workbench & Launcher — Electron + TypeScript + React",
+  "author": "Vantrilex",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -9,7 +10,37 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint electron src tests",
-    "package": "npm run build"
+    "package": "npm run build",
+    "dist": "npm run build && electron-builder --win --x64",
+    "dist:dir": "npm run build && electron-builder --dir --win --x64"
+  },
+  "build": {
+    "appId": "com.vantrilex.workbench",
+    "productName": "Vantrilex Workbench & Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Vantrilex Workbench",
+      "uninstallDisplayName": "Vantrilex Workbench & Launcher",
+      "deleteAppDataOnUninstall": false
+    }
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -21,6 +52,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
     "electron": "^39.2.0",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^4.0.0",
     "eslint": "^9.36.0",
     "jsdom": "^26.1.0",
