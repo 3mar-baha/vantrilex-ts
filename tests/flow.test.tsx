@@ -18,6 +18,10 @@ function mockBridge(overrides: Partial<VantrilexApi> = {}): VantrilexApi {
       { key: 'claude', found: false, version: '' },
       { key: 'codex', found: true, version: '' }
     ],
+    sessionsList: async () => [
+      { id: 's-1', workspace: 'C:/proj', runner: 'opencode', timestamp: '2026-09-19T00:00:01Z', status: 'exited' }
+    ],
+    sessionsDelete: async () => ({ ok: true }),
     ...overrides
   }
 }
@@ -53,8 +57,12 @@ describe('guided wizard flow through IPC', () => {
     })
     expect(screen.getByTestId('progress-label').textContent).toContain('2 of 2')
     fireEvent.click(screen.getByTestId('provisioning-continue'))
-    expect(screen.getByTestId('handover-stage')).toBeTruthy()
+    await waitFor(() => {
+      expect(screen.getByTestId('handover-sessions')).toBeTruthy()
+    })
     expect(screen.getByTestId('handover-runner').textContent).toBe('opencode')
+    fireEvent.click(screen.getByTestId('handover-resume-s-1'))
+    expect(screen.getByTestId('handover-resume').textContent).toContain('s-1')
   })
 
   it('classic mode skips the detect card requirement', async () => {

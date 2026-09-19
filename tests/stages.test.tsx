@@ -138,18 +138,51 @@ describe('ProvisioningStage progress updates', () => {
 })
 
 describe('HandoverStage confirmation', () => {
+  const sessions = [
+    { id: 's-1', workspace: 'C:/proj', runner: 'opencode', timestamp: '2026-09-19T00:00:01Z', status: 'exited' },
+    { id: 's-2', workspace: 'C:/proj', runner: 'opencode', timestamp: '2026-09-19T00:00:02Z', status: 'exited' }
+  ]
+
+  function handover(overrides = {}) {
+    const props = {
+      runner: 'opencode',
+      workspace: 'C:/proj',
+      resumeId: null as string | null,
+      onSelectResume: vi.fn(),
+      sessions,
+      onDeleteSession: vi.fn(),
+      launching: false,
+      onLaunch: vi.fn(),
+      onBack: vi.fn(),
+      ...overrides
+    }
+    render(<HandoverStage {...props} />)
+    return props
+  }
+
   it('shows summary and fires launch/back', () => {
-    const onLaunch = vi.fn()
-    const onBack = vi.fn()
-    render(
-      <HandoverStage runner="opencode" workspace="C:/proj" resuming={false} launching={false} onLaunch={onLaunch} onBack={onBack} />
-    )
+    const props = handover()
     expect(screen.getByTestId('handover-runner').textContent).toBe('opencode')
     expect(screen.getByTestId('handover-workspace').textContent).toBe('C:/proj')
     expect(screen.getByTestId('handover-resume').textContent).toBe('Fresh session')
     fireEvent.click(screen.getByTestId('handover-launch'))
-    expect(onLaunch).toHaveBeenCalledTimes(1)
+    expect(props.onLaunch).toHaveBeenCalledTimes(1)
     fireEvent.click(screen.getByTestId('handover-back'))
-    expect(onBack).toHaveBeenCalledTimes(1)
+    expect(props.onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('selects and deletes recent sessions', () => {
+    const props = handover()
+    expect(screen.getByTestId('handover-sessions')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('handover-resume-s-1'))
+    expect(props.onSelectResume).toHaveBeenCalledWith('s-1')
+    fireEvent.click(screen.getByTestId('handover-delete-s-2'))
+    expect(props.onDeleteSession).toHaveBeenCalledWith('s-2')
+  })
+
+  it('shows the active resume selection', () => {
+    handover({ resumeId: 's-2' })
+    expect(screen.getByTestId('handover-resume').textContent).toContain('s-2')
+    expect(screen.getByTestId('handover-session-active')).toBeTruthy()
   })
 })
