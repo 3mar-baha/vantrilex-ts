@@ -45,13 +45,13 @@ describe('primitives', () => {
 })
 
 describe('App shell', () => {
-  it('renders nav, headline, cards, and footer', () => {
+  it('starts on the mode fork with nav and footer', () => {
     render(<App />)
     expect(screen.getByTestId('app')).toBeTruthy()
     expect(screen.getByTestId('top-nav')).toBeTruthy()
-    expect(screen.getByText('Vantrilex Workbench')).toBeTruthy()
-    expect(screen.getByTestId('card-modes')).toBeTruthy()
-    expect(screen.getByTestId('card-agents')).toBeTruthy()
+    expect(screen.getByTestId('mode-stage')).toBeTruthy()
+    expect(screen.getByTestId('mode-guided')).toBeTruthy()
+    expect(screen.getByTestId('mode-classic')).toBeTruthy()
     expect(screen.getByTestId('footer')).toBeTruthy()
   })
 })
