@@ -5,6 +5,31 @@ import { checkForUpdates } from './updater'
 import { checkAll } from '../src/engine/doctor/deps'
 import { deleteSession, loadSessions, recordSession } from '../src/engine/runner/sessions'
 import { launchAgent, type RunnerId } from '../src/engine/runner/spawn'
+import { Keyring, MemoryKeyStore, type VoiceProvider } from '../src/engine/voice/keyring'
+import { GroqStt } from '../src/engine/voice/stt'
+import { FishTts } from '../src/engine/voice/tts'
+import { createSecureStore } from './secure-store'
+
+function createKeyring(): Keyring {
+  try {
+    return new Keyring(createSecureStore(app.getPath('userData')))
+  } catch {
+    return new Keyring(new MemoryKeyStore())
+  }
+}
+
+let keyring: Keyring | null = null
+let tts: FishTts | null = null
+let stt: GroqStt | null = null
+
+function voice(): { keyring: Keyring; tts: FishTts; stt: GroqStt } {
+  if (!keyring || !tts || !stt) {
+    keyring = createKeyring()
+    tts = new FishTts(keyring)
+    stt = new GroqStt(keyring)
+  }
+  return { keyring, tts, stt }
+}
 
 let mainWindow: BrowserWindow | null = null
 
@@ -34,15 +59,8 @@ function createWindow(): void {
 }
 
 function registerChannels(): void {
-  const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 5+)' })
-  for (const channel of [
-    'foundry:detect',
-    'foundry:provision',
-    'voice:speak',
-    'voice:transcribe',
-    'mobile:pair',
-    'mobile:approve'
-  ]) {
+  const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 6+)' })
+  for (const channel of ['foundry:detect', 'foundry:provision', 'mobile:pair', 'mobile:approve']) {
     ipcMain.handle(channel, stub)
   }
 
@@ -61,6 +79,32 @@ function registerChannels(): void {
   ipcMain.handle('runner:sessions:list', () => loadSessions())
 
   ipcMain.handle('runner:sessions:delete', (_event, id: string) => ({ ok: deleteSession(id) }))
+
+  ipcMain.handle('voice:keyring:status', () => voice().keyring.status())
+
+  ipcMain.handle('voice:keyring:set', (_event, provider: VoiceProvider, secret: string) => {
+    if (provider !== 'fish_audio' && provider !== 'groq') {
+      throw new Error(`unknown voice provider: ${String(provider)}`)
+    }
+    const v = voice()
+    v.keyring.addKey(provider, secret)
+    return v.keyring.status()
+  })
+
+  ipcMain.handle('voice:tts:speak', async (_event, text: string) => {
+    const res = await voice().tts.speak(String(text))
+    return {
+      audioBase64: Buffer.from(res.audio).toString('base64'),
+      format: res.format,
+      cached: res.cached
+    }
+  })
+
+  ipcMain.handle('voice:stt:transcribe', async (_event, audioBase64: string, filename?: string) => {
+    const bytes = new Uint8Array(Buffer.from(String(audioBase64), 'base64'))
+    const res = await voice().stt.transcribe(bytes, typeof filename === 'string' ? filename : 'input.mp3')
+    return { text: res.text }
+  })
 }
 
 app.whenReady().then(() => {

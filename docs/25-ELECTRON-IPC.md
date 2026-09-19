@@ -13,8 +13,9 @@ Renderer never touches fs or processes. All privileged calls cross IPC.
 ### Preload bridge
 
 Typed channels over contextBridge: `foundry:detect`,
-`foundry:provision`, `runner:launch`, `voice:speak`,
-`voice:transcribe`, `mobile:pair`, `mobile:approve`, `doctor:probes`,
+`foundry:provision`, `runner:launch`, `voice:tts:speak`,
+`voice:stt:transcribe`, `voice:keyring:status`, `voice:keyring:set`,
+`mobile:pair`, `mobile:approve`, `doctor:probes`,
 `runner:sessions:list`, `runner:sessions:delete`. Channel names carry
 a version prefix. No nodeIntegration, no remote module.
 
