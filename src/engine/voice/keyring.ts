@@ -49,18 +49,27 @@ interface Cursor {
 
 export class Keyring {
   private cursors = new Map<VoiceProvider, Cursor>()
-  private counters = new Map<VoiceProvider, number>()
 
   constructor(private readonly store: KeyStore) {}
+
+  private nextCounter(provider: VoiceProvider): number {
+    let max = 0
+    for (const id of this.store.listIds(provider)) {
+      const suffix = id.slice(provider.length + 1)
+      const n = Number.parseInt(suffix, 10)
+      if (Number.isInteger(n) && n > max) {
+        max = n
+      }
+    }
+    return max + 1
+  }
 
   addKey(provider: VoiceProvider, secret: string): string {
     const trimmed = secret.trim()
     if (trimmed === '') {
       throw new Error(`refusing empty key for ${provider}`)
     }
-    const n = (this.counters.get(provider) ?? 0) + 1
-    this.counters.set(provider, n)
-    const id = `${provider}:${n}`
+    const id = `${provider}:${this.nextCounter(provider)}`
     this.store.setSecret(id, trimmed)
     return id
   }
