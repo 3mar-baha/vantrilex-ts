@@ -7,6 +7,8 @@ export type IpcChannel =
   | 'mobile:pair'
   | 'mobile:approve'
   | 'doctor:probes'
+  | 'runner:sessions:list'
+  | 'runner:sessions:delete'
 
 export const IPC_CHANNELS: IpcChannel[] = [
   'foundry:detect',
@@ -16,7 +18,9 @@ export const IPC_CHANNELS: IpcChannel[] = [
   'voice:transcribe',
   'mobile:pair',
   'mobile:approve',
-  'doctor:probes'
+  'doctor:probes',
+  'runner:sessions:list',
+  'runner:sessions:delete'
 ]
 
 export interface DetectResult {
@@ -32,7 +36,15 @@ export interface ProvisionResult {
 }
 
 export interface LaunchResult {
-  pid: number
+  pid: number | null
+}
+
+export interface SessionView {
+  id: string
+  workspace: string
+  runner: string
+  timestamp: string
+  status: string
 }
 
 export interface SpeakResult {
@@ -61,6 +73,8 @@ export interface VantrilexApi {
   pair: () => Promise<PairResult>
   approve: (id: string, decision: boolean) => Promise<{ ok: boolean }>
   probes: () => Promise<ProbeStatus[]>
+  sessionsList: () => Promise<SessionView[]>
+  sessionsDelete: (id: string) => Promise<{ ok: boolean }>
 }
 
 export function createApi(invoke: InvokeFn): VantrilexApi {
@@ -74,6 +88,8 @@ export function createApi(invoke: InvokeFn): VantrilexApi {
     transcribe: (audioId) => invoke('voice:transcribe', audioId) as Promise<{ text: string }>,
   pair: () => invoke('mobile:pair') as Promise<PairResult>,
   approve: (id, decision) => invoke('mobile:approve', id, decision) as Promise<{ ok: boolean }>,
-  probes: () => invoke('doctor:probes') as Promise<ProbeStatus[]>
+  probes: () => invoke('doctor:probes') as Promise<ProbeStatus[]>,
+  sessionsList: () => invoke('runner:sessions:list') as Promise<SessionView[]>,
+  sessionsDelete: (id) => invoke('runner:sessions:delete', id) as Promise<{ ok: boolean }>
   }
 }

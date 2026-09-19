@@ -2,6 +2,9 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { setupTray } from './tray'
 import { checkForUpdates } from './updater'
+import { checkAll } from '../src/engine/doctor/deps'
+import { deleteSession, loadSessions, recordSession } from '../src/engine/runner/sessions'
+import { launchAgent, type RunnerId } from '../src/engine/runner/spawn'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -31,20 +34,33 @@ function createWindow(): void {
 }
 
 function registerChannels(): void {
-  const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 1+)' })
-  const channels = [
+  const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 5+)' })
+  for (const channel of [
     'foundry:detect',
     'foundry:provision',
-    'runner:launch',
     'voice:speak',
     'voice:transcribe',
     'mobile:pair',
-    'mobile:approve',
-    'doctor:probes'
-  ]
-  for (const channel of channels) {
+    'mobile:approve'
+  ]) {
     ipcMain.handle(channel, stub)
   }
+
+  ipcMain.handle('doctor:probes', async () => {
+    const statuses = await checkAll()
+    return statuses.map((s) => ({ key: s.dep.key, found: s.found, version: s.version }))
+  })
+
+  ipcMain.handle('runner:launch', (_event, runner: RunnerId, workspace: string, resume?: string) => {
+    const resumeId = typeof resume === 'string' ? resume : ''
+    recordSession({ workspace, runner })
+    const child = launchAgent(runner, { workspace, resumeId })
+    return { pid: child.pid ?? null }
+  })
+
+  ipcMain.handle('runner:sessions:list', () => loadSessions())
+
+  ipcMain.handle('runner:sessions:delete', (_event, id: string) => ({ ok: deleteSession(id) }))
 }
 
 app.whenReady().then(() => {

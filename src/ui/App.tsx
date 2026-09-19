@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { colors, maxContentWidth, spacing, typography } from '../design/tokens'
-import type { VantrilexApi } from '../../electron/channels'
+import type { SessionView, VantrilexApi } from '../../electron/channels'
 import { Footer } from './components/Footer'
 import { TopNav } from './components/TopNav'
 import { HandoverStage } from './stages/HandoverStage'
@@ -37,6 +37,8 @@ export function App() {
   const [progress, setProgress] = useState<ProvisionProgress>({ done: 0, total: 0, file: '' })
   const [launching, setLaunching] = useState(false)
   const [error, setError] = useState('')
+  const [sessions, setSessions] = useState<SessionView[]>([])
+  const [resumeId, setResumeId] = useState<string | null>(null)
 
   const handleMode = useCallback(() => {
     setDetection(null)
@@ -121,13 +123,41 @@ export function App() {
     }
     setLaunching(true)
     try {
-      await api.launch(selectedRunner, workspace.trim())
+      await api.launch(selectedRunner, workspace.trim(), resumeId ?? undefined)
     } catch (err) {
       setError((err as Error).message)
     } finally {
       setLaunching(false)
     }
-  }, [selectedRunner, workspace])
+  }, [selectedRunner, workspace, resumeId])
+
+  const refreshSessions = useCallback(async () => {
+    const api = bridge()
+    if (!api) {
+      return
+    }
+    try {
+      const all = await api.sessionsList()
+      setSessions(all.filter((s) => s.workspace === workspace.trim()))
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }, [workspace])
+
+  const handleDeleteSession = useCallback(
+    async (id: string) => {
+      const api = bridge()
+      if (!api) {
+        return
+      }
+      await api.sessionsDelete(id)
+      if (resumeId === id) {
+        setResumeId(null)
+      }
+      await refreshSessions()
+    },
+    [refreshSessions, resumeId]
+  )
 
   return (
     <div
@@ -196,9 +226,16 @@ export function App() {
           <HandoverStage
             runner={selectedRunner ?? ''}
             workspace={workspace}
-            resuming={false}
+            resumeId={resumeId}
+            onSelectResume={setResumeId}
+            sessions={sessions}
+            onDeleteSession={(id) => {
+              void handleDeleteSession(id)
+            }}
             launching={launching}
-            onLaunch={handleLaunch}
+            onLaunch={() => {
+              void handleLaunch()
+            }}
             onBack={() => setStep('runner')}
           />
         )}
@@ -206,7 +243,11 @@ export function App() {
           <div style={{ marginTop: spacing.lg }}>
             <button
               data-testid="provisioning-continue"
-              onClick={() => setStep('handover')}
+              onClick={() => {
+                setStep('handover')
+                setResumeId(null)
+                void refreshSessions()
+              }}
               style={{
                 backgroundColor: colors.primary,
                 color: colors.onPrimary,
