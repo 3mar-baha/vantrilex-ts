@@ -54,9 +54,10 @@ export function recordSession(
   now: () => string = () => new Date().toISOString()
 ): Session {
   counter += 1
+  const at = now()
   const session: Session = {
-    id: `${now()}-${counter}`,
-    timestamp: now(),
+    id: `${at}-${counter}`,
+    timestamp: at,
     status: 'active',
     ...entry
   }
