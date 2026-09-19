@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createApi, IPC_CHANNELS, type IpcChannel } from '../electron/channels'
 
 describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
-  it('exposes exactly the ten documented channels', () => {
+  it('exposes exactly the twelve documented channels', () => {
     expect([...IPC_CHANNELS].sort()).toEqual(
       [
         'foundry:detect',
@@ -10,8 +10,10 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
         'runner:launch',
         'runner:sessions:list',
         'runner:sessions:delete',
-        'voice:speak',
-        'voice:transcribe',
+        'voice:tts:speak',
+        'voice:stt:transcribe',
+        'voice:keyring:status',
+        'voice:keyring:set',
         'mobile:pair',
         'mobile:approve',
         'doctor:probes'
@@ -29,13 +31,15 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
     await api.detect('ws')
     await api.provision('ws', 1)
     await api.launch('opencode', 'ws')
-    await api.speak('hi')
-    await api.transcribe('a1')
     await api.pair()
     await api.approve('s1', true)
     await api.probes()
     await api.sessionsList()
     await api.sessionsDelete('s1')
+    await api.ttsSpeak('hi')
+    await api.sttTranscribe('YmFzZTY0', 'sample.mp3')
+    await api.keyringStatus()
+    await api.keyringSet('fish_audio', 'secret')
     const used: IpcChannel[] = seen.map((c) => c[0] as IpcChannel)
     expect([...used].sort()).toEqual([...IPC_CHANNELS].sort())
   })
