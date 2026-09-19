@@ -6,6 +6,7 @@ export type IpcChannel =
   | 'voice:transcribe'
   | 'mobile:pair'
   | 'mobile:approve'
+  | 'doctor:probes'
 
 export const IPC_CHANNELS: IpcChannel[] = [
   'foundry:detect',
@@ -14,7 +15,8 @@ export const IPC_CHANNELS: IpcChannel[] = [
   'voice:speak',
   'voice:transcribe',
   'mobile:pair',
-  'mobile:approve'
+  'mobile:approve',
+  'doctor:probes'
 ]
 
 export interface DetectResult {
@@ -42,6 +44,12 @@ export interface PairResult {
   qrPayload: string
 }
 
+export interface ProbeStatus {
+  key: string
+  found: boolean
+  version: string
+}
+
 export type InvokeFn = (channel: IpcChannel, ...args: unknown[]) => Promise<unknown>
 
 export interface VantrilexApi {
@@ -52,6 +60,7 @@ export interface VantrilexApi {
   transcribe: (audioId: string) => Promise<{ text: string }>
   pair: () => Promise<PairResult>
   approve: (id: string, decision: boolean) => Promise<{ ok: boolean }>
+  probes: () => Promise<ProbeStatus[]>
 }
 
 export function createApi(invoke: InvokeFn): VantrilexApi {
@@ -63,7 +72,8 @@ export function createApi(invoke: InvokeFn): VantrilexApi {
       invoke('runner:launch', runner, workspace, resume) as Promise<LaunchResult>,
     speak: (text) => invoke('voice:speak', text) as Promise<SpeakResult>,
     transcribe: (audioId) => invoke('voice:transcribe', audioId) as Promise<{ text: string }>,
-    pair: () => invoke('mobile:pair') as Promise<PairResult>,
-    approve: (id, decision) => invoke('mobile:approve', id, decision) as Promise<{ ok: boolean }>
+  pair: () => invoke('mobile:pair') as Promise<PairResult>,
+  approve: (id, decision) => invoke('mobile:approve', id, decision) as Promise<{ ok: boolean }>,
+  probes: () => invoke('doctor:probes') as Promise<ProbeStatus[]>
   }
 }

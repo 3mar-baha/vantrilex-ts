@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createApi, IPC_CHANNELS, type IpcChannel } from '../electron/channels'
 
 describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
-  it('exposes exactly the seven documented channels', () => {
+  it('exposes exactly the eight documented channels', () => {
     expect([...IPC_CHANNELS].sort()).toEqual(
       [
         'foundry:detect',
@@ -11,7 +11,8 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
         'voice:speak',
         'voice:transcribe',
         'mobile:pair',
-        'mobile:approve'
+        'mobile:approve',
+        'doctor:probes'
       ].sort()
     )
   })
@@ -30,6 +31,7 @@ describe('IPC channel contract (docs/25-ELECTRON-IPC.md)', () => {
     await api.transcribe('a1')
     await api.pair()
     await api.approve('s1', true)
+    await api.probes()
     const used: IpcChannel[] = seen.map((c) => c[0] as IpcChannel)
     expect([...used].sort()).toEqual([...IPC_CHANNELS].sort())
   })

@@ -21,6 +21,13 @@ function createWindow(): void {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  const devUrl = process.env['ELECTRON_RENDERER_URL']
+  if (devUrl) {
+    void mainWindow.loadURL(devUrl)
+  } else {
+    void mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
 }
 
 function registerChannels(): void {
@@ -32,7 +39,8 @@ function registerChannels(): void {
     'voice:speak',
     'voice:transcribe',
     'mobile:pair',
-    'mobile:approve'
+    'mobile:approve',
+    'doctor:probes'
   ]
   for (const channel of channels) {
     ipcMain.handle(channel, stub)
