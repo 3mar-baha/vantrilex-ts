@@ -4,6 +4,7 @@ import type { SessionView, VantrilexApi } from '../../electron/channels'
 import { Footer } from './components/Footer'
 import { TopNav } from './components/TopNav'
 import { HandoverStage } from './stages/HandoverStage'
+import { MobilePanel } from './stages/MobilePanel'
 import { ModeStage } from './stages/ModeStage'
 import { ProvisioningStage } from './stages/ProvisioningStage'
 import { RunnerStage } from './stages/RunnerStage'
@@ -266,6 +267,7 @@ export function App() {
           </div>
         )}
         <VoicePanel api={bridge()} />
+        <MobilePanel api={bridge()} />
       </main>
       <Footer />
     </div>
