@@ -12,10 +12,6 @@ export type IpcChannel =
   | 'doctor:probes'
   | 'runner:sessions:list'
   | 'runner:sessions:delete'
-  | 'voice:tts:speak'
-  | 'voice:stt:transcribe'
-  | 'voice:keyring:status'
-  | 'voice:keyring:set'
 
 export const IPC_CHANNELS: IpcChannel[] = [
   'foundry:detect',
