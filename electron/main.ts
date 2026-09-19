@@ -5,13 +5,19 @@ import { checkForUpdates } from './updater'
 import { checkAll } from '../src/engine/doctor/deps'
 import { deleteSession, loadSessions, recordSession } from '../src/engine/runner/sessions'
 import { launchAgent, type RunnerId } from '../src/engine/runner/spawn'
-import { Keyring, MemoryKeyStore, type VoiceProvider } from '../src/engine/voice/keyring'
+import { Keyring, MemoryKeyStore } from '../src/engine/voice/keyring'
 import { GroqStt } from '../src/engine/voice/stt'
 import { FishTts } from '../src/engine/voice/tts'
 import { ApprovalQueue } from '../src/engine/mobile/push'
 import { DEFAULT_RELAY_URL, HappyRelay } from '../src/engine/mobile/relay'
 import { PairingSession, qrDataUri, qrSvg } from '../src/engine/mobile/pairing'
+import { detectProjectCase } from '../src/engine/foundry/detect'
+import { scaffoldDocs } from '../src/engine/foundry/docs'
+import { provisionCoreSkills } from '../src/engine/foundry/skills'
+import { immunologySummary, loadLedger } from '../src/engine/immune/ledger'
+import { applyFoundryGuard } from '../src/engine/scaffold/provision'
 import { createSecureStore } from './secure-store'
+import { clampBuffer, clampText, validateId, validateWorkspace, workspaceBase } from './validate'
 
 function createKeyring(): Keyring {
   try {
@@ -82,40 +88,96 @@ function createWindow(): void {
 }
 
 function registerChannels(): void {
-  const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 6+)' })
-  for (const channel of ['foundry:detect', 'foundry:provision']) {
-    ipcMain.handle(channel, stub)
-  }
+  ipcMain.handle('foundry:detect', (_event, workspace: unknown) => {
+    const dir = validateWorkspace(workspace)
+    const details = detectProjectCase(dir)
+    return {
+      projectCase: details.projectCase,
+      language: details.language,
+      stack: details.stack,
+      action: details.action
+    }
+  })
+
+  ipcMain.handle('foundry:provision', async (event, workspace: unknown, projectCase: unknown) => {
+    const dir = validateWorkspace(workspace)
+    if (typeof projectCase !== 'number' || ![1, 2, 3].includes(projectCase)) {
+      throw new Error('projectCase must be 1, 2, or 3')
+    }
+    const errors: string[] = []
+    const created: string[] = []
+    const total = 28 + 7 + 1
+    let done = 0
+    const emit = (file: string) => {
+      done += 1
+      event.sender.send('foundry:progress', { done, total, file })
+    }
+    try {
+      const docs = scaffoldDocs(dir, workspaceBase(dir), { immuneSummary: immunologySummary(loadLedger()) })
+      for (const f of docs.created) {
+        created.push(f)
+        emit(f)
+      }
+    } catch (err) {
+      errors.push((err as Error).message)
+    }
+    try {
+      const skills = provisionCoreSkills(dir)
+      for (const f of skills.created) {
+        created.push(f)
+        emit(f)
+      }
+    } catch (err) {
+      errors.push((err as Error).message)
+    }
+    try {
+      const guard = applyFoundryGuard(dir)
+      for (const f of guard.created) {
+        created.push(f)
+        emit(f)
+      }
+    } catch (err) {
+      errors.push((err as Error).message)
+    }
+    return { created, errors }
+  })
 
   ipcMain.handle('doctor:probes', async () => {
     const statuses = await checkAll()
     return statuses.map((s) => ({ key: s.dep.key, found: s.found, version: s.version }))
   })
 
-  ipcMain.handle('runner:launch', (_event, runner: RunnerId, workspace: string, resume?: string) => {
+  ipcMain.handle('runner:launch', (_event, runner: unknown, workspace: unknown, resume?: unknown) => {
+    if (runner !== 'opencode' && runner !== 'claude' && runner !== 'codex') {
+      throw new Error(`unknown runner: ${String(runner)}`)
+    }
+    const dir = validateWorkspace(workspace)
     const resumeId = typeof resume === 'string' ? resume : ''
-    recordSession({ workspace, runner })
-    const child = launchAgent(runner, { workspace, resumeId })
+    recordSession({ workspace: dir, runner: runner as RunnerId })
+    const child = launchAgent(runner as RunnerId, { workspace: dir, resumeId })
     return { pid: child.pid ?? null }
   })
 
   ipcMain.handle('runner:sessions:list', () => loadSessions())
 
-  ipcMain.handle('runner:sessions:delete', (_event, id: string) => ({ ok: deleteSession(id) }))
+  ipcMain.handle('runner:sessions:delete', (_event, id: unknown) => ({ ok: deleteSession(validateId(id, 'session id')) }))
 
   ipcMain.handle('voice:keyring:status', () => voice().keyring.status())
 
-  ipcMain.handle('voice:keyring:set', (_event, provider: VoiceProvider, secret: string) => {
+  ipcMain.handle('voice:keyring:set', (_event, provider: unknown, secret: unknown) => {
     if (provider !== 'fish_audio' && provider !== 'groq') {
       throw new Error(`unknown voice provider: ${String(provider)}`)
+    }
+    if (typeof secret !== 'string' || secret.trim() === '') {
+      throw new Error('refusing empty key')
     }
     const v = voice()
     v.keyring.addKey(provider, secret)
     return v.keyring.status()
   })
 
-  ipcMain.handle('voice:tts:speak', async (_event, text: string) => {
-    const res = await voice().tts.speak(String(text))
+  ipcMain.handle('voice:tts:speak', async (_event, text: unknown) => {
+    const res = await voice().tts.speak(clampText(text))
     return {
       audioBase64: Buffer.from(res.audio).toString('base64'),
       format: res.format,
@@ -123,9 +185,12 @@ function registerChannels(): void {
     }
   })
 
-  ipcMain.handle('voice:stt:transcribe', async (_event, audioBase64: string, filename?: string) => {
-    const bytes = new Uint8Array(Buffer.from(String(audioBase64), 'base64'))
-    const res = await voice().stt.transcribe(bytes, typeof filename === 'string' ? filename : 'input.mp3')
+  ipcMain.handle('voice:stt:transcribe', async (_event, audioBase64: unknown, filename?: unknown) => {
+    if (typeof audioBase64 !== 'string' || audioBase64 === '') {
+      throw new Error('audio must be a non-empty base64 string')
+    }
+    const bytes = clampBuffer(new Uint8Array(Buffer.from(audioBase64, 'base64')))
+    const res = await voice().stt.transcribe(bytes, typeof filename === 'string' && filename !== '' ? filename : 'input.mp3')
     return { text: res.text }
   })
 
@@ -147,9 +212,43 @@ function registerChannels(): void {
     return { svg, dataUri, expiresAt: payload.exp }
   })
 
-  ipcMain.handle('mobile:approval:respond', (_event, id: string, decision: boolean) => {
-    return { ok: mobile().approvals.respond(id, decision ? 'approved' : 'rejected') }
+  ipcMain.handle('mobile:approval:respond', (_event, id: unknown, decision: unknown) => {
+    return { ok: mobile().approvals.respond(validateId(id, 'approval id'), decision ? 'approved' : 'rejected') }
   })
+
+  ipcMain.handle('mobile:scan', () => {
+    mobile().pairing.markScanned()
+    return { state: mobile().pairing.state }
+  })
+
+  ipcMain.handle('mobile:connect', () => {
+    mobile().pairing.connect()
+    return { state: mobile().pairing.state }
+  })
+
+  ipcMain.handle(
+    'mobile:approval:request',
+    (_event, sessionId: unknown, kind: unknown, summary: unknown) => {
+      const validKind = kind === 'bash' || kind === 'write' || kind === 'edit' ? kind : 'other'
+      const req = mobile().approvals.request(
+        validateId(sessionId, 'session id'),
+        validKind,
+        clampText(summary, 2000)
+      )
+      return { id: req.id }
+    }
+  )
+
+  ipcMain.handle(
+    'mobile:approval:forward',
+    async (_event, id: unknown, token: unknown) => {
+      const approved = mobile().approvals
+      const cleanId = validateId(id, 'approval id')
+      const cleanToken = validateId(token, 'relay token')
+      const ok = await approved.forward(mobile().relay, cleanId, cleanToken)
+      return { ok }
+    }
+  )
 }
 
 app.whenReady().then(() => {
