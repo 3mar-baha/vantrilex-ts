@@ -8,6 +8,9 @@ import { launchAgent, type RunnerId } from '../src/engine/runner/spawn'
 import { Keyring, MemoryKeyStore, type VoiceProvider } from '../src/engine/voice/keyring'
 import { GroqStt } from '../src/engine/voice/stt'
 import { FishTts } from '../src/engine/voice/tts'
+import { ApprovalQueue } from '../src/engine/mobile/push'
+import { DEFAULT_RELAY_URL, HappyRelay } from '../src/engine/mobile/relay'
+import { PairingSession, qrDataUri, qrSvg } from '../src/engine/mobile/pairing'
 import { createSecureStore } from './secure-store'
 
 function createKeyring(): Keyring {
@@ -29,6 +32,26 @@ function voice(): { keyring: Keyring; tts: FishTts; stt: GroqStt } {
     stt = new GroqStt(keyring)
   }
   return { keyring, tts, stt }
+}
+
+interface MobileContext {
+  pairing: PairingSession
+  approvals: ApprovalQueue
+  relay: HappyRelay
+}
+
+let mobileCtx: MobileContext | null = null
+
+function mobile(): MobileContext {
+  if (!mobileCtx) {
+    const relayUrl = process.env['HAPPY_SERVER_URL'] ?? DEFAULT_RELAY_URL
+    mobileCtx = {
+      pairing: new PairingSession(relayUrl),
+      approvals: new ApprovalQueue(),
+      relay: new HappyRelay({ serverUrl: relayUrl })
+    }
+  }
+  return mobileCtx
 }
 
 let mainWindow: BrowserWindow | null = null
@@ -60,7 +83,7 @@ function createWindow(): void {
 
 function registerChannels(): void {
   const stub = async () => ({ ok: false, error: 'engine not implemented (Phase 6+)' })
-  for (const channel of ['foundry:detect', 'foundry:provision', 'mobile:pair', 'mobile:approve']) {
+  for (const channel of ['foundry:detect', 'foundry:provision']) {
     ipcMain.handle(channel, stub)
   }
 
@@ -104,6 +127,28 @@ function registerChannels(): void {
     const bytes = new Uint8Array(Buffer.from(String(audioBase64), 'base64'))
     const res = await voice().stt.transcribe(bytes, typeof filename === 'string' ? filename : 'input.mp3')
     return { text: res.text }
+  })
+
+  ipcMain.handle('mobile:status', () => {
+    const session = mobile()
+    return {
+      state: session.pairing.state,
+      relayUrl: session.relay.serverUrl,
+      sessionId: session.pairing.payload?.session ?? null,
+      pairedDevices: session.pairing.state === 'Connected' || session.pairing.state === 'Paired' ? 1 : 0,
+      pendingApprovals: session.approvals.pending().length
+    }
+  })
+
+  ipcMain.handle('mobile:qr:generate', async () => {
+    const session = mobile()
+    const payload = session.pairing.begin()
+    const [svg, dataUri] = await Promise.all([qrSvg(payload), qrDataUri(payload)])
+    return { svg, dataUri, expiresAt: payload.exp }
+  })
+
+  ipcMain.handle('mobile:approval:respond', (_event, id: string, decision: boolean) => {
+    return { ok: mobile().approvals.respond(id, decision ? 'approved' : 'rejected') }
   })
 }
 
