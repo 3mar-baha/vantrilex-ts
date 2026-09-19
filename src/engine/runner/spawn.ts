@@ -76,10 +76,14 @@ export function launchAgent(id: RunnerId, options: LaunchOptions): ChildProcess 
   return spawnFn(bin, args, { cwd: options.workspace, env: launchEnv(), stdio: 'inherit', detached: false })
 }
 
+export function escapePowershellArg(arg: string): string {
+  return `'${arg.replace(/'/g, "''")}'`
+}
+
 export function terminalLaunchCommand(id: RunnerId, resumeId = ''): { command: string; args: string[] } {
   const { bin, args } = buildCommand(id, resumeId)
   return {
     command: 'powershell',
-    args: ['-NoExit', '-Command', `& ${bin} ${args.map((a) => `'${a}'`).join(' ')}`]
+    args: ['-NoExit', '-Command', `& ${bin} ${args.map(escapePowershellArg).join(' ')}`]
   }
 }

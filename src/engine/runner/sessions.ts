@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import type { RunnerId } from './spawn'
 
@@ -42,8 +42,10 @@ export function loadSessions(file?: string): Session[] {
 
 function writeSessions(sessions: Session[], file?: string): void {
   const path = file ?? sessionsFile()
-  mkdirSync(join(path, '..'), { recursive: true })
-  writeFileSync(path, JSON.stringify(sessions, null, 2), 'utf8')
+  mkdirSync(dirname(path), { recursive: true })
+  const tmp = `${path}.tmp`
+  writeFileSync(tmp, JSON.stringify(sessions, null, 2), 'utf8')
+  renameSync(tmp, path)
 }
 
 let counter = 0
@@ -67,8 +69,9 @@ export function recordSession(
 }
 
 export function deleteSession(id: string, file?: string): boolean {
-  const kept = loadSessions(file).filter((s) => s.id !== id)
-  if (kept.length === loadSessions(file).length) {
+  const all = loadSessions(file)
+  const kept = all.filter((s) => s.id !== id)
+  if (kept.length === all.length) {
     return false
   }
   writeSessions(kept, file)
