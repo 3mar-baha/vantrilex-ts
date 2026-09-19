@@ -32,9 +32,22 @@ tool halts the workflow with a blocker report, never a silent swap.
 
 ### Atomic rollback checkpoint
 
-Before /code, create a checkpoint: `git stash create` on dirty trees or
-a checkpoint tag on clean ones. If /test fails more than 3 times, prompt
-automated rollback to the checkpoint before further edits.
+Before /code, create a checkpoint: `git stash create` on dirty trees
+or a checkpoint tag on clean ones. If /test fails more than 3 times,
+prompt automated rollback to the checkpoint before further edits.
+
+### Granular atomic commits and GitHub sync (permanent policy)
+
+- **Atomic commits**: never make monolithic commits. Partition every
+  phase and feature into the largest logical number of atomic, focused
+  commits following Conventional Commits (`feat:`, `test:`, `docs:`,
+  `refactor:`, `chore:`). One concern per commit; docs, tests, and
+  implementation ship as separate commits unless inseparable.
+- **GitHub synchronization**: as part of the `/sync` gate of every
+  phase, push all local commits to the remote GitHub repository.
+- **Remote bootstrap**: if no GitHub remote exists, create and link it
+  (via `gh repo create vantrilex-ts` or `git remote add`) and push all
+  commits made so far before closing the phase.
 
 ### The 8 implementation phases
 
