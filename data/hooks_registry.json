@@ -1,0 +1,110 @@
+[
+  {
+    "name": "auto-format-js-ts-files-with-prettier-after-edits",
+    "event": "PostToolUse",
+    "description": "Auto-format JS/TS files with Prettier after edits",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "block-creation-of-random-md-files-keeps-docs-consolidated",
+    "event": "PreToolUse",
+    "description": "Block creation of random .md files - keeps docs consolidated",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "block-dev-servers-outside-tmux-ensures-you-can-access-logs",
+    "event": "PreToolUse",
+    "description": "Block dev servers outside tmux - ensures you can access logs",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "check-for-console-log-in-modified-files-after-each-response",
+    "event": "Stop",
+    "description": "Check for console.log in modified files after each response",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "evaluate-session-for-extractable-patterns",
+    "event": "SessionEnd",
+    "description": "Evaluate session for extractable patterns",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "load-previous-context-and-detect-package-manager-on-new-session",
+    "event": "SessionStart",
+    "description": "Load previous context and detect package manager on new session",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "log-pr-url-and-provide-review-command-after-pr-creation",
+    "event": "PostToolUse",
+    "description": "Log PR URL and provide review command after PR creation",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "persist-session-state-on-end",
+    "event": "SessionEnd",
+    "description": "Persist session state on end",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "pre-compact",
+    "event": "PreCompact",
+    "description": "PreCompact Hook - Save state before context compaction",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/memory-persistence/pre-compact.sh"
+  },
+  {
+    "name": "reminder-before-git-push-to-review-changes",
+    "event": "PreToolUse",
+    "description": "Reminder before git push to review changes",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "reminder-to-use-tmux-for-long-running-commands",
+    "event": "PreToolUse",
+    "description": "Reminder to use tmux for long-running commands",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "save-state-before-context-compaction",
+    "event": "PreCompact",
+    "description": "Save state before context compaction",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "session-end",
+    "event": "Stop",
+    "description": "Stop Hook (Session End) - Persist learnings when session ends",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/memory-persistence/session-end.sh"
+  },
+  {
+    "name": "session-start",
+    "event": "SessionStart",
+    "description": "SessionStart Hook - Load previous context on new session",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/memory-persistence/session-start.sh"
+  },
+  {
+    "name": "suggest-compact",
+    "event": "PostToolUse",
+    "description": "Strategic Compact Suggester",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/strategic-compact/suggest-compact.sh"
+  },
+  {
+    "name": "suggest-manual-compaction-at-logical-intervals",
+    "event": "PreToolUse",
+    "description": "Suggest manual compaction at logical intervals",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "typescript-check-after-editing-ts-tsx-files",
+    "event": "PostToolUse",
+    "description": "TypeScript check after editing .ts/.tsx files",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  },
+  {
+    "name": "warn-about-console-log-statements-after-edits",
+    "event": "PostToolUse",
+    "description": "Warn about console.log statements after edits",
+    "rawURL": "https://raw.githubusercontent.com/worldflowai/everything-claude-code/main/hooks/hooks.json"
+  }
+]

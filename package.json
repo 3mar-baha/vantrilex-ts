@@ -1,0 +1,34 @@
+{
+  "name": "vantrilex",
+  "version": "1.0.0",
+  "description": "Vantrilex Next-Gen Agentic Workbench & Launcher — Electron + TypeScript + React",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint electron src tests",
+    "package": "npm run build"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^39.2.0",
+    "electron-vite": "^4.0.0",
+    "eslint": "^9.36.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}

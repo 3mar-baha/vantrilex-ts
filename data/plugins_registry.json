@@ -1,0 +1,86 @@
+[
+  {
+    "name": "code-review",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Code review",
+    "installRef": "anthropics/claude-plugins-official/code-review",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "code-simplifier",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Refactor code",
+    "installRef": "anthropics/claude-plugins-official/code-simplifier",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "commit-commands",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Git workflow",
+    "installRef": "anthropics/claude-plugins-official/commit-commands",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "context7",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Live documentation lookup",
+    "installRef": "anthropics/claude-plugins-official/context7",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "feature-dev",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Feature development",
+    "installRef": "anthropics/claude-plugins-official/feature-dev",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "frontend-design",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "UI patterns",
+    "installRef": "anthropics/claude-plugins-official/frontend-design",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "hookify",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Create hooks conversationally",
+    "installRef": "anthropics/claude-plugins-official/hookify",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "mgrep",
+    "marketplace": "mixedbread-ai/mgrep",
+    "description": "Enhanced search (better than ripgrep)",
+    "installRef": "mixedbread-ai/mgrep/mgrep",
+    "rawURL": "https://raw.githubusercontent.com/mixedbread-ai/mgrep/main/README.md"
+  },
+  {
+    "name": "pr-review-toolkit",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "PR automation",
+    "installRef": "anthropics/claude-plugins-official/pr-review-toolkit",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "pyright-lsp",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Python type checking",
+    "installRef": "anthropics/claude-plugins-official/pyright-lsp",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "security-guidance",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "Security checks",
+    "installRef": "anthropics/claude-plugins-official/security-guidance",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  },
+  {
+    "name": "typescript-lsp",
+    "marketplace": "anthropics/claude-plugins-official",
+    "description": "TypeScript intelligence",
+    "installRef": "anthropics/claude-plugins-official/typescript-lsp",
+    "rawURL": "https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/README.md"
+  }
+]
