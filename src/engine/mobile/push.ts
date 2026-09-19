@@ -63,7 +63,7 @@ export class ApprovalQueue {
     relay: HappyRelay,
     id: string,
     token: string,
-    options?: { intervalMs?: number; timeoutMs?: number }
+    options?: { intervalMs?: number; timeoutMs?: number; now?: () => number; sleep?: (ms: number) => Promise<void> }
   ): Promise<'approved' | 'rejected' | 'pending'> {
     const req = this.items.get(id)
     if (!req || !req.relayId) {

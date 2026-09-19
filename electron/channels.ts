@@ -9,6 +9,10 @@ export type IpcChannel =
   | 'mobile:status'
   | 'mobile:qr:generate'
   | 'mobile:approval:respond'
+  | 'mobile:scan'
+  | 'mobile:connect'
+  | 'mobile:approval:request'
+  | 'mobile:approval:forward'
   | 'doctor:probes'
   | 'runner:sessions:list'
   | 'runner:sessions:delete'
@@ -24,6 +28,10 @@ export const IPC_CHANNELS: IpcChannel[] = [
   'mobile:status',
   'mobile:qr:generate',
   'mobile:approval:respond',
+  'mobile:scan',
+  'mobile:connect',
+  'mobile:approval:request',
+  'mobile:approval:forward',
   'doctor:probes',
   'runner:sessions:list',
   'runner:sessions:delete'
@@ -78,6 +86,14 @@ export interface QrResult {
   expiresAt: number
 }
 
+export interface FoundryProgress {
+  done: number
+  total: number
+  file: string
+}
+
+export type FoundryProgressCallback = (progress: FoundryProgress) => void
+
 export interface ProbeStatus {
   key: string
   found: boolean
@@ -85,6 +101,8 @@ export interface ProbeStatus {
 }
 
 export type InvokeFn = (channel: IpcChannel, ...args: unknown[]) => Promise<unknown>
+
+export type SubscribeFn = (channel: string, cb: (payload: FoundryProgress) => void) => () => void
 
 export interface VantrilexApi {
   detect: (workspace: string) => Promise<DetectResult>
@@ -97,12 +115,17 @@ export interface VantrilexApi {
   mobileStatus: () => Promise<MobileStatus>
   mobileQrGenerate: () => Promise<QrResult>
   mobileApprovalRespond: (id: string, decision: boolean) => Promise<{ ok: boolean }>
+  mobileScan: () => Promise<{ state: string }>
+  mobileConnect: () => Promise<{ state: string }>
+  mobileApprovalRequest: (sessionId: string, kind: string, summary: string) => Promise<{ id: string }>
+  mobileApprovalForward: (id: string, token: string) => Promise<{ ok: boolean }>
+  onFoundryProgress: (cb: FoundryProgressCallback) => () => void
   probes: () => Promise<ProbeStatus[]>
     sessionsList: () => Promise<SessionView[]>
     sessionsDelete: (id: string) => Promise<{ ok: boolean }>
 }
 
-export function createApi(invoke: InvokeFn): VantrilexApi {
+export function createApi(invoke: InvokeFn, subscribe?: SubscribeFn): VantrilexApi {
   return {
     detect: (workspace) => invoke('foundry:detect', workspace) as Promise<DetectResult>,
     provision: (workspace, projectCase) =>
@@ -119,6 +142,13 @@ export function createApi(invoke: InvokeFn): VantrilexApi {
     mobileQrGenerate: () => invoke('mobile:qr:generate') as Promise<QrResult>,
     mobileApprovalRespond: (id, decision) =>
       invoke('mobile:approval:respond', id, decision) as Promise<{ ok: boolean }>,
+    mobileScan: () => invoke('mobile:scan') as Promise<{ state: string }>,
+    mobileConnect: () => invoke('mobile:connect') as Promise<{ state: string }>,
+    mobileApprovalRequest: (sessionId, kind, summary) =>
+      invoke('mobile:approval:request', sessionId, kind, summary) as Promise<{ id: string }>,
+    mobileApprovalForward: (id, token) =>
+      invoke('mobile:approval:forward', id, token) as Promise<{ ok: boolean }>,
+    onFoundryProgress: (cb) => (subscribe ? subscribe('foundry:progress', cb) : () => undefined),
     probes: () => invoke('doctor:probes') as Promise<ProbeStatus[]>,
     sessionsList: () => invoke('runner:sessions:list') as Promise<SessionView[]>,
     sessionsDelete: (id) => invoke('runner:sessions:delete', id) as Promise<{ ok: boolean }>

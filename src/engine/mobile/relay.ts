@@ -99,20 +99,22 @@ export class HappyRelay {
   async awaitDecision(
     approvalId: string,
     token: string,
-    options: { intervalMs?: number; timeoutMs?: number } = {}
+    options: { intervalMs?: number; timeoutMs?: number; now?: () => number; sleep?: (ms: number) => Promise<void> } = {}
   ): Promise<ApprovalDecision> {
     const intervalMs = options.intervalMs ?? 2000
     const timeoutMs = options.timeoutMs ?? 5 * 60 * 1000
-    const started = Date.now()
+    const now = options.now ?? Date.now
+    const sleep = options.sleep ?? ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)))
+    const started = now()
     for (;;) {
       const decision = await this.pollDecision(approvalId, token)
       if (decision !== 'pending') {
         return decision
       }
-      if (Date.now() - started >= timeoutMs) {
+      if (now() - started >= timeoutMs) {
         return 'pending'
       }
-      await new Promise((resolve) => setTimeout(resolve, intervalMs))
+      await sleep(intervalMs)
     }
   }
 }

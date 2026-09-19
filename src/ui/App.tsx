@@ -105,6 +105,15 @@ export function App() {
     setStep('provisioning')
     setSteps([])
     setProgress({ done: 0, total: 1, file: 'starting…' })
+    const unsubscribe = api.onFoundryProgress((p) => {
+      setProgress({ done: p.done, total: p.total, file: p.file })
+      setSteps((prev) => {
+        if (prev.some((s) => s.label === p.file)) {
+          return prev
+        }
+        return [...prev, { label: p.file, done: true }]
+      })
+    })
     try {
       const res = await api.provision(workspace.trim(), detection?.projectCase ?? 0)
       const total = Math.max(res.created.length, 1)
@@ -115,6 +124,8 @@ export function App() {
       }
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      unsubscribe()
     }
   }, [workspace, detection])
 

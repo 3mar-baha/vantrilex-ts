@@ -57,6 +57,22 @@ export function MobilePanel({ api }: MobilePanelProps) {
     }
   }
 
+  const advance = async (kind: 'scan' | 'connect') => {
+    if (!api) {
+      return
+    }
+    setBusy(true)
+    try {
+      const res = kind === 'scan' ? await api.mobileScan() : await api.mobileConnect()
+      setMessage(`Pairing state: ${res.state}.`)
+      await refresh()
+    } catch (err) {
+      setMessage((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <section data-testid="mobile-panel" style={{ marginTop: spacing.xl }}>
       <Card variant="light">
@@ -86,9 +102,47 @@ export function MobilePanel({ api }: MobilePanelProps) {
             style={{ borderRadius: radii.md, marginBottom: spacing.md }}
           />
         )}
-        <ButtonPrimary data-testid="mobile-generate" disabled={busy} onClick={() => void generate()}>
-          {qr ? 'Refresh code' : 'Pair mobile'}
-        </ButtonPrimary>
+        <div style={{ display: 'flex', gap: spacing.sm }}>
+          <ButtonPrimary data-testid="mobile-generate" disabled={busy} onClick={() => void generate()}>
+            {qr ? 'Refresh code' : 'Pair mobile'}
+          </ButtonPrimary>
+          <button
+            data-testid="mobile-scan"
+            disabled={busy}
+            onClick={() => void advance('scan')}
+            style={{
+              backgroundColor: colors.surfaceDarkElevated,
+              color: colors.onDark,
+              borderRadius: radii.md,
+              padding: '12px 20px',
+              height: 40,
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: typography.button.fontFamily,
+              fontSize: typography.button.fontSize
+            }}
+          >
+            Mark scanned
+          </button>
+          <button
+            data-testid="mobile-connect"
+            disabled={busy}
+            onClick={() => void advance('connect')}
+            style={{
+              backgroundColor: colors.surfaceDarkElevated,
+              color: colors.onDark,
+              borderRadius: radii.md,
+              padding: '12px 20px',
+              height: 40,
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: typography.button.fontFamily,
+              fontSize: typography.button.fontSize
+            }}
+          >
+            Connect
+          </button>
+        </div>
         {message !== '' && (
           <p data-testid="mobile-message" style={{ ...typography.bodySm, color: colors.body, margin: `${spacing.sm}px 0 0` }}>
             {message}
