@@ -24,8 +24,13 @@ export default defineConfig({
   renderer: {
     plugins: [react()],
     root: 'src/ui',
+    // Relative base is mandatory: the packaged app loads over file://
+    // (and from inside app.asar), where absolute /assets/... URLs 404.
+    base: './',
     build: {
-      outDir: '../../out/renderer',
+      // Absolute outDir: relative outDirs resolve against CWD and leak
+      // outside the workspace (seen: O:\out\renderer).
+      outDir: resolve(__dirname, 'out/renderer'),
       rollupOptions: {
         input: { index: resolve(__dirname, 'src/ui/index.html') }
       }
